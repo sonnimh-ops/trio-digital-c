@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trio Digital CRM</title>
+  <style>
+    body {
+      background: #0d1b2a;
+      color: white;
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .card {
+      background: #1b263b;
+      padding: 40px;
+      border-radius: 20px;
+      text-align: center;
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+    }
+    h1 {
+      color: #00b4d8;
+    }
+    p {
+      color: #e0e1dd;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Trio Digital CRM</h1>
+    <p>🚀 Systemet kører! Du er forbundet til Firebase.</p>
+    <p>Fortsæt med opsætningen for at tilføje kundeoversigten.</p>
+  </div>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-analytics.js";
+    
+    const firebaseConfig = {
+      apiKey: "AIzaSyC2bDIXgf7IX1egmqhjp3DH2AGy0fwG8v8",
+      authDomain: "trio-digital-crm-be5c8.firebaseapp.com",
+      projectId: "trio-digital-crm-be5c8",
+      storageBucket: "trio-digital-crm-be5c8.firebasestorage.app",
+      messagingSenderId: "278730282591",
+      appId: "1:278730282591:web:9013ea07a288c563192dea",
+      measurementId: "G-ZZG3TPH6B4"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const analytics = getAnalytics(app);
+  </script>
+</body>
+</html>
