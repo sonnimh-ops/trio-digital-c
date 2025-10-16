@@ -127,10 +127,10 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
   </script>
-  
+  <script>
   const el = id => document.getElementById(id);
   const escapeHtml = s => String(s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[m]));
-
+</script>
   // Elements
   const googleSignIn = el('googleSignIn');
   const logoutBtn = el('logoutBtn');
