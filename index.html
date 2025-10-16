@@ -112,21 +112,22 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
 
   <script>
-  // ====== FIREBASE CONFIG - sørg for at dette matcher din Firebase Project settings ======
-  const firebaseConfig = {
-    apiKey: "AIzaSyC2bDIXgf7IX1egmqhjp3DH2AGy0fwG8v8",
-    authDomain: "trio-digital-crm-be5c8.firebaseapp.com",
-    projectId: "trio-digital-crm-be5c8",
-    storageBucket: "trio-digital-crm-be5c8.appspot.com",
-    messagingSenderId: "278730282591",
-    appId: "1:278730282591:web:9013ea07a288c563192dea",
-    measurementId: "G-ZZG3TPH6B4"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const db = firebase.firestore();
-
-  // UI helpers
+ // ====== FIREBASE CONFIG - sørg for at dette matcher din Firebase Project settings ======
+    const firebaseConfig = {
+      apiKey: "AIzaSyC2bDIXgf7IX1egmqhjp3DH2AGy0fwG8v8",
+      authDomain: "trio-digital-crm-be5c8.firebaseapp.com",
+      projectId: "trio-digital-crm-be5c8",
+      storageBucket: "trio-digital-crm-be5c8.appspot.com",
+      messagingSenderId: "278730282591",
+      appId: "1:278730282591:web:9013ea07a288c563192dea",
+      measurementId: "G-ZZG3TPH6B4"
+    };
+ // ====== INITIALISER FIREBASE ======
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+  </script>
+  
   const el = id => document.getElementById(id);
   const escapeHtml = s => String(s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[m]));
 
