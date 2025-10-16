@@ -1,92 +1,318 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="da">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Trio Digital CRM Login</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Trio Digital CRM</title>
   <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #0e1a2b;
-      color: white;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      height: 100vh;
-      flex-direction: column;
-    }
-    button {
-      background-color: #00bcd4;
-      border: none;
-      color: white;
-      padding: 12px 24px;
-      margin: 10px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 16px;
-    }
-    button:hover {
-      background-color: #0097a7;
-    }
+    :root{--bg:#0f1724;--card:#0b1220;--accent:#06b6d4;--muted:#9aa4b2}
+    body{margin:0;font-family:Arial,Helvetica,sans-serif;background:linear-gradient(180deg,#071022 0%, #0f1724 100%);color:#e6eef6}
+    .wrap{max-width:1100px;margin:18px auto;padding:18px}
+    header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+    h1{margin:0;font-size:20px;color:var(--accent)}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.03);padding:12px;border-radius:10px}
+    input,textarea,select,button{font-size:14px;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:inherit}
+    textarea{min-height:80px}
+    .grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+    .list{max-height:56vh;overflow:auto}
+    .item{padding:8px;border-bottom:1px solid rgba(255,255,255,0.02);cursor:pointer}
+    .small{font-size:13px;color:var(--muted)}
+    .btn{background:var(--accent);color:#042;cursor:pointer;border:none;padding:8px 10px;border-radius:8px}
+    .btn.ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted)}
+    .btn.red{background:#d9534f;color:white}
+    .row{display:flex;gap:8px;align-items:center}
+    footer{margin-top:12px;color:var(--muted);font-size:13px}
+    .hidden{display:none}
+    @media (max-width:900px){.grid{grid-template-columns:1fr;}.list{max-height:300px}}
   </style>
 </head>
 <body>
-  <h1>Trio Digital CRM 🚀</h1>
-  <div id="login-area">
-    <button id="googleLogin">Log ind med Google</button>
-  </div>
-  <div id="user-area" style="display:none;">
-    <h2>Velkommen, <span id="user-name"></span>!</h2>
-    <button id="logout">Log ud</button>
+  <div class="wrap">
+    <header>
+      <div>
+        <h1>Trio Digital CRM</h1>
+        <div class="small">Callcenter - delt CRM</div>
+      </div>
+      <div class="card" id="authCard" style="min-width:260px;text-align:right">
+        <div id="signedOut">
+          <button id="googleSignIn" class="btn">Log ind med Google</button>
+          <div class="small" style="margin-top:6px">Brug din Trio Digital Google-konto</div>
+        </div>
+        <div id="signedIn" style="display:none">
+          <div class="small" id="userEmail"></div>
+          <div style="margin-top:8px" class="row" id="signedButtons">
+            <button id="logoutBtn" class="btn ghost">Log ud</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main id="appArea" class="grid hidden">
+      <section class="card">
+        <h3>Opret / Importér kunde</h3>
+        <input id="c_name" placeholder="Firmanavn" />
+        <input id="c_address" placeholder="Adresse" />
+        <input id="c_phone" placeholder="Telefon" />
+        <input id="c_cvr" placeholder="CVR" />
+        <input id="c_contact" placeholder="Kontaktperson" />
+        <input id="c_branche" placeholder="Branche" />
+        <div class="row" style="margin-top:6px">
+          <input id="c_start" type="date" style="flex:1" />
+          <input id="c_follow" type="date" style="flex:1" />
+        </div>
+        <textarea id="c_notes" placeholder="Noter"></textarea>
+        <div class="row" style="margin-top:6px">
+          <button id="createBtn" class="btn">Opret kunde</button>
+          <button id="importBtn" class="btn ghost">Import fra CVR</button>
+          <button id="clearBtn" class="btn ghost">Nulstil</button>
+        </div>
+        <hr style="border:none;border-top:1px dashed rgba(255,255,255,0.03);margin:10px 0">
+        <div class="small">Søg: <input id="q" placeholder="navn, branche, CVR eller kontakt" style="width:60%" /></div>
+        <div style="margin-top:6px" class="small">Filter status:
+          <select id="filterStatus">
+            <option value="">Alle</option>
+            <option value="Opfølgning">Opfølgning</option>
+            <option value="Intet svar">Intet svar</option>
+            <option value="Afslag">Afslag</option>
+          </select>
+        </div>
+      </section>
+
+      <section class="card">
+        <h3>Kundeoversigt</h3>
+        <div class="row small" style="margin-bottom:8px">
+          <div>Vis:</div>
+          <button id="listViewBtn" class="btn ghost">Liste</button>
+          <button id="calViewBtn" class="btn ghost">Kalender</button>
+          <div style="flex:1"></div>
+          <div class="small">Kommende opfølgninger:</div>
+        </div>
+        <div id="list" class="list"></div>
+      </section>
+
+      <section class="card">
+        <h3>Detaljer / Redigér</h3>
+        <div id="detail">Vælg en kunde fra listen</div>
+      </section>
+    </main>
+
+    <div id="welcome" class="card">
+      <h3>Velkommen — Log ind for at komme videre</h3>
+      <p class="small">Når du har logget ind med Google vises CRM'et automatisk.</p>
+    </div>
+
+    <footer class="small card">
+      Dette er Trio Digital CRM. Data gemmes i jeres Firebase-konto. Tilføj autoriserede domæner og Google sign-in i Firebase Auth settings.
+    </footer>
   </div>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.0/firebase-app.js";
-    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } 
-      from "https://www.gstatic.com/firebasejs/10.14.0/firebase-auth.js";
+  <!-- Firebase compat SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyC2bDIXgf7IX1egmqhjp3DH2AGy0fwG8v8",
-      authDomain: "trio-digital-crm-be5c8.firebaseapp.com",
-      projectId: "trio-digital-crm-be5c8",
-      storageBucket: "trio-digital-crm-be5c8.appspot.com",
-      messagingSenderId: "278730282591",
-      appId: "1:278730282591:web:9013ea07a288c563192dea",
-      measurementId: "G-ZZG3TPH6B4"
+  <script>
+  // ====== FIREBASE CONFIG - sørg for at dette matcher din Firebase Project settings ======
+  const firebaseConfig = {
+    apiKey: "AIzaSyC2bDIXgf7IX1egmqhjp3DH2AGy0fwG8v8",
+    authDomain: "trio-digital-crm-be5c8.firebaseapp.com",
+    projectId: "trio-digital-crm-be5c8",
+    storageBucket: "trio-digital-crm-be5c8.appspot.com",
+    messagingSenderId: "278730282591",
+    appId: "1:278730282591:web:9013ea07a288c563192dea",
+    measurementId: "G-ZZG3TPH6B4"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  // UI helpers
+  const el = id => document.getElementById(id);
+  const escapeHtml = s => String(s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[m]));
+
+  // Elements
+  const googleSignIn = el('googleSignIn');
+  const logoutBtn = el('logoutBtn');
+  const signedOutBox = el('signedOut');
+  const signedInBox = el('signedIn');
+  const userEmail = el('userEmail');
+  const appArea = el('appArea');
+  const welcome = el('welcome');
+
+  // Auth flows
+  googleSignIn.onclick = async ()=> {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    try { await auth.signInWithPopup(provider); }
+    catch(err){ alert('Login-fejl: '+err.message); }
+  };
+  logoutBtn.onclick = ()=> auth.signOut();
+
+  auth.onAuthStateChanged(user => {
+    if(user){
+      signedOutBox.style.display='none';
+      signedInBox.style.display='block';
+      userEmail.innerText = user.email;
+      appArea.classList.remove('hidden');
+      welcome.classList.add('hidden');
+      loadCustomers();
+    } else {
+      signedOutBox.style.display='block';
+      signedInBox.style.display='none';
+      userEmail.innerText = '';
+      appArea.classList.add('hidden');
+      welcome.classList.remove('hidden');
+    }
+  });
+
+  // Create customer
+  el('createBtn').onclick = async () => {
+    if(!auth.currentUser){ alert('Log ind først'); return; }
+    const payload = {
+      name: el('c_name').value || '',
+      address: el('c_address').value || '',
+      phone: el('c_phone').value || '',
+      cvr: el('c_cvr').value || '',
+      contact: el('c_contact').value || '',
+      branche: el('c_branche').value || '',
+      startDate: el('c_start').value || null,
+      followUpDate: el('c_follow').value || null,
+      notes: el('c_notes').value || '',
+      status: 'Intet svar',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      createdBy: auth.currentUser ? auth.currentUser.email : 'unknown'
     };
+    try {
+      await db.collection('customers').add(payload);
+      alert('Kunde oprettet');
+      clearForm();
+    } catch(e){ alert('Fejl ved oprettelse: '+e.message) }
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
+  function clearForm(){
+    ['c_name','c_address','c_phone','c_cvr','c_contact','c_branche','c_notes','c_start','c_follow'].forEach(id=>el(id).value='');
+  }
+  el('clearBtn').onclick = clearForm;
 
-    const loginBtn = document.getElementById('googleLogin');
-    const logoutBtn = document.getElementById('logout');
-    const userName = document.getElementById('user-name');
-    const loginArea = document.getElementById('login-area');
-    const userArea = document.getElementById('user-area');
+  // Import from CVR
+  el('importBtn').onclick = async () => {
+    const cvr = el('c_cvr').value.trim();
+    if(!cvr){ alert('Skriv CVR i feltet først'); return; }
+    try {
+      const res = await fetch('https://cvrapi.dk/api?search='+encodeURIComponent(cvr)+'&country=dk');
+      if(!res.ok) throw new Error('CVR API fejl');
+      const data = await res.json();
+      const payload = {
+        name: data.name || data.trade_name || '',
+        address: (data.address||'') + ' ' + (data.zipcode||'') + ' ' + (data.city||''),
+        phone: data.phone || '',
+        cvr: data.vat || cvr,
+        branche: data.business_activity || (data.industry && data.industry[0] && data.industry[0].code) || '',
+        startDate: data.established || null,
+        contact: '',
+        notes: 'Importeret fra CVR',
+        status: 'Intet svar',
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      await db.collection('customers').add(payload);
+      alert('Importeret: ' + (payload.name || payload.cvr));
+      clearForm();
+    } catch(err){ alert('Fejl ved CVR-import: '+err.message) }
+  };
 
-    loginBtn.addEventListener('click', async () => {
-      try {
-        await signInWithPopup(auth, provider);
-      } catch (error) {
-        alert('Fejl ved login: ' + error.message);
+  // List & realtime
+  let unsub = null;
+  function loadCustomers(){
+    if(unsub) unsub();
+    unsub = db.collection('customers').orderBy('createdAt','desc').onSnapshot(s=>{
+      const items = s.docs.map(d=>({id:d.id,...d.data()}));
+      renderList(items);
+    });
+  }
+
+  function renderList(items){
+    const q = (el('q').value||'').toLowerCase();
+    const statusFilter = el('filterStatus').value;
+    const filtered = items.filter(it=>{
+      if(statusFilter && it.status !== statusFilter) return false;
+      if(q){
+        return (it.name||'').toLowerCase().includes(q) || (it.branche||'').toLowerCase().includes(q) || (it.cvr||'').toLowerCase().includes(q) || (it.contact||'').toLowerCase().includes(q);
       }
+      return true;
     });
+    const list = el('list'); list.innerHTML='';
+    if(filtered.length===0){ list.innerHTML='<div class="small">Ingen kunder</div>'; return; }
+    for(const it of filtered){
+      const d = document.createElement('div'); d.className='item';
+      d.innerHTML = '<strong>'+escapeHtml(it.name||'(uden navn)')+'</strong><div class="small">'+escapeHtml(it.contact||'')+' • '+escapeHtml(it.phone||'')+'</div><div class="small">Status: '+escapeHtml(it.status||'')+' • Opstart: '+escapeHtml(it.startDate||'')+'</div>';
+      d.onclick = ()=> showDetail(it);
+      list.appendChild(d);
+    }
+  }
 
-    logoutBtn.addEventListener('click', async () => {
-      await signOut(auth);
-    });
+  function showDetail(it){
+    const html = `
+      <div><strong>${escapeHtml(it.name||'')}</strong></div>
+      <div class="small">Kontakt: ${escapeHtml(it.contact||'')} • ${escapeHtml(it.phone||'')}</div>
+      <div class="small">CVR: ${escapeHtml(it.cvr||'')} • Branche: ${escapeHtml(it.branche||'')}</div>
+      <div class="small">Adresse: ${escapeHtml(it.address||'')}</div>
+      <div class="small">Opstart: ${escapeHtml(it.startDate||'')} • Opfølgningsdato: ${escapeHtml(it.followUpDate||'')}</div>
+      <div style="margin-top:8px"><textarea id="edit_notes">${escapeHtml(it.notes||'')}</textarea></div>
+      <div class="row" style="margin-top:8px">
+        <select id="edit_status">
+          <option ${it.status==='Opfølgning'?'selected':''}>Opfølgning</option>
+          <option ${it.status==='Intet svar'?'selected':''}>Intet svar</option>
+          <option ${it.status==='Afslag'?'selected':''}>Afslag</option>
+        </select>
+        <input id="edit_follow" type="date" value="${it.followUpDate?it.followUpDate:''}" />
+        <button class="btn" id="saveBtn">Gem</button>
+        <button class="btn ghost" id="exportBtn">Kopier</button>
+        <button class="btn red" id="deleteBtn">Slet</button>
+      </div>
+    `;
+    el('detail').innerHTML = html;
+    window._currentItem = it;
+    el('saveBtn').onclick = async ()=>{
+      const notes = el('edit_notes').value;
+      const status = el('edit_status').value;
+      const follow = el('edit_follow').value || null;
+      await db.collection('customers').doc(it.id).update({ notes, status, followUpDate: follow });
+      alert('Opdateret');
+    };
+    el('deleteBtn').onclick = async ()=>{
+      if(!confirm('Slet kunde?')) return;
+      await db.collection('customers').doc(it.id).delete();
+      el('detail').innerHTML = 'Vælg en kunde fra listen';
+    };
+    el('exportBtn').onclick = ()=>{
+      const obj = JSON.stringify(it, null, 2);
+      navigator.clipboard.writeText(obj).then(()=> alert('Kunde kopieret til udklipsholder'));
+    };
+  }
 
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        userName.textContent = user.displayName;
-        loginArea.style.display = 'none';
-        userArea.style.display = 'block';
-      } else {
-        loginArea.style.display = 'block';
-        userArea.style.display = 'none';
+  # Calendar view
+  el('calViewBtn').onclick = async ()=>{
+    const snap = await db.collection('customers').orderBy('followUpDate').get();
+    const items = snap.docs.map(d=>({id:d.id,...d.data()}));
+    const groups = {};
+    for(const it of items){
+      const k = it.followUpDate || 'Ingen dato';
+      groups[k] = groups[k] || []; groups[k].push(it);
+    }
+    const list = el('list'); list.innerHTML='';
+    for(const k of Object.keys(groups)){
+      const h = document.createElement('div'); h.innerHTML = '<div style="font-weight:600;margin-top:8px">'+(k==='Ingen dato'?'Ingen opfølgningsdato':k)+'</div>'; list.appendChild(h);
+      for(const it of groups[k]){
+        const div = document.createElement('div'); div.className='item'; div.innerHTML = '<strong>'+escapeHtml(it.name||'(uden navn)')+'</strong><div class="small">'+escapeHtml(it.contact||'')+' • '+escapeHtml(it.phone||'')+'</div>'; div.onclick=()=> showDetail(it); list.appendChild(div);
       }
-    });
+    }
+  };
+
+  el('listViewBtn').onclick = ()=> loadCustomers();
+
+  # Filters live
+  el('q').addEventListener('input', ()=> loadCustomers());
+  el('filterStatus').addEventListener('change', ()=> loadCustomers());
+
   </script>
 </body>
 </html>
