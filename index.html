@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Trio Digital CRM</title>
+  <title>Trio Digital CRM — Autoimport</title>
   <style>
     :root{--bg:#0f1724;--card:#0b1220;--accent:#06b6d4;--muted:#9aa4b2}
     body{margin:0;font-family:Arial,Helvetica,sans-serif;background:linear-gradient(180deg,#071022 0%, #0f1724 100%);color:#e6eef6}
@@ -23,6 +23,7 @@
     .row{display:flex;gap:8px;align-items:center}
     footer{margin-top:12px;color:var(--muted);font-size:13px}
     .hidden{display:none}
+    .progress{margin-top:8px;font-size:13px;color:var(--muted);white-space:pre-wrap}
     @media (max-width:900px){.grid{grid-template-columns:1fr;}.list{max-height:300px}}
   </style>
 </head>
@@ -31,7 +32,7 @@
     <header>
       <div>
         <h1>Trio Digital CRM</h1>
-        <div class="small">Callcenter - delt CRM</div>
+        <div class="small">Callcenter - Autoimport modul</div>
       </div>
       <div class="card" id="authCard" style="min-width:260px;text-align:right">
         <div id="signedOut">
@@ -49,7 +50,37 @@
 
     <main id="appArea" class="grid hidden">
       <section class="card">
-        <h3>Opret / Importér kunde</h3>
+        <h3>Auto-import virksomheder</h3>
+        <div class="small">Vælg branche og antal — systemet forsøger at hente aktive virksomheder oprettet i år.</div>
+        <div style="margin-top:8px" class="row">
+          <select id="branchSelect" style="flex:1">
+            <option value="Tilfældige">Tilfældige</option>
+            <option value="Bygge og anlæg">Bygge og anlæg</option>
+            <option value="Handel">Handel</option>
+            <option value="Transport og logistik">Transport og logistik</option>
+            <option value="IT og software">IT og software</option>
+            <option value="Marketing og reklame">Marketing og reklame</option>
+            <option value="Rengøring og service">Rengøring og service</option>
+            <option value="Frisør og skønhed">Frisør og skønhed</option>
+            <option value="Restauranter og caféer">Restauranter og caféer</option>
+            <option value="Ejendom og bolig">Ejendom og bolig</option>
+            <option value="Rådgivning og konsulent">Rådgivning og konsulent</option>
+          </select>
+          <select id="countSelect" style="width:120px;margin-left:8px">
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option selected value="50">50</option>
+            <option value="100">100</option>
+          </select>
+        </div>
+        <div style="margin-top:8px" class="row">
+          <button id="autoImportBtn" class="btn">Importer virksomheder automatisk</button>
+          <button id="previewBtn" class="btn ghost">Forhåndsvis (ingen import)</button>
+        </div>
+        <div id="progress" class="progress"></div>
+        <hr style="margin-top:12px;border-top:1px dashed rgba(255,255,255,0.03)">
+
+        <h4 style="margin-top:8px">Opret / Importér enkelt</h4>
         <input id="c_name" placeholder="Firmanavn" />
         <input id="c_address" placeholder="Adresse" />
         <input id="c_phone" placeholder="Telefon" />
@@ -65,16 +96,6 @@
           <button id="createBtn" class="btn">Opret kunde</button>
           <button id="importBtn" class="btn ghost">Import fra CVR</button>
           <button id="clearBtn" class="btn ghost">Nulstil</button>
-        </div>
-        <hr style="border:none;border-top:1px dashed rgba(255,255,255,0.03);margin:10px 0">
-        <div class="small">Søg: <input id="q" placeholder="navn, branche, CVR eller kontakt" style="width:60%" /></div>
-        <div style="margin-top:6px" class="small">Filter status:
-          <select id="filterStatus">
-            <option value="">Alle</option>
-            <option value="Opfølgning">Opfølgning</option>
-            <option value="Intet svar">Intet svar</option>
-            <option value="Afslag">Afslag</option>
-          </select>
         </div>
       </section>
 
@@ -111,7 +132,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
 
-  <!-- Én samlet script-blok (rette og samlede funktioner) -->
   <script>
   // ====== FIREBASE CONFIG - sørg for at dette matcher din Firebase Project settings ======
   const firebaseConfig = {
@@ -124,16 +144,16 @@
     measurementId: "G-ZZG3TPH6B4"
   };
 
-  // ====== INITIALISER FIREBASE ======
+  // initialize firebase
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
   const db = firebase.firestore();
 
-  // Hjælpefunktioner
+  // helpers
   const el = id => document.getElementById(id);
   const escapeHtml = s => String(s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[m]));
 
-  // Elements
+  // ui elements
   const googleSignIn = el('googleSignIn');
   const logoutBtn = el('logoutBtn');
   const signedOutBox = el('signedOut');
@@ -142,7 +162,27 @@
   const appArea = el('appArea');
   const welcome = el('welcome');
 
-  // Auth flows
+  const autoImportBtn = el('autoImportBtn');
+  const previewBtn = el('previewBtn');
+  const branchSelect = el('branchSelect');
+  const countSelect = el('countSelect');
+  const progress = el('progress');
+
+  // branch keywords mapping (used as search terms for cvrapi)
+  const branchKeywords = {
+    "Bygge og anlæg": "byggeri",
+    "Handel": "handel",
+    "Transport og logistik": "transport",
+    "IT og software": "it",
+    "Marketing og reklame": "marketing",
+    "Rengøring og service": "rengøring",
+    "Frisør og skønhed": "frisør",
+    "Restauranter og caféer": "restaurant",
+    "Ejendom og bolig": "ejendom",
+    "Rådgivning og konsulent": "konsulent"
+  };
+
+  // auth flows
   googleSignIn.onclick = async ()=> {
     const provider = new firebase.auth.GoogleAuthProvider();
     try { await auth.signInWithPopup(provider); }
@@ -167,7 +207,7 @@
     }
   });
 
-  // Create customer
+  // create single customer
   el('createBtn').onclick = async () => {
     if(!auth.currentUser){ alert('Log ind først'); return; }
     const payload = {
@@ -190,15 +230,11 @@
       clearForm();
     } catch(e){ alert('Fejl ved oprettelse: '+e.message) }
   };
+  el('clearBtn').onclick = ()=> ['c_name','c_address','c_phone','c_cvr','c_contact','c_branche','c_notes','c_start','c_follow'].forEach(id=>el(id).value='');
 
-  function clearForm(){
-    ['c_name','c_address','c_phone','c_cvr','c_contact','c_branche','c_notes','c_start','c_follow'].forEach(id=>el(id).value='');
-  }
-  el('clearBtn').onclick = clearForm;
-
-  // Import from CVR
-  el('importBtn').onclick = async () => {
-    const cvr = el('cvr') || el('c_cvr').value.trim();
+  // import single from CVR
+  el('importBtn').onclick = async ()=> {
+    const cvr = el('c_cvr').value.trim();
     if(!cvr){ alert('Skriv CVR i feltet først'); return; }
     try {
       const res = await fetch('https://cvrapi.dk/api?search='+encodeURIComponent(cvr)+'&country=dk');
@@ -222,6 +258,146 @@
     } catch(err){ alert('Fejl ved CVR-import: '+err.message) }
   };
 
+  // helper: check existing CVRs in DB
+  async function fetchExistingCVRs(){
+    const snap = await db.collection('customers').get();
+    const set = new Set();
+    snap.docs.forEach(d=>{ const v = d.data().cvr; if(v) set.add(String(v)); });
+    return set;
+  }
+
+  // auto-import function
+  autoImportBtn.onclick = async ()=> {
+    if(!auth.currentUser){ alert('Log ind først'); return; }
+    const branch = branchSelect.value;
+    const count = parseInt(countSelect.value,10);
+    progress.innerText = 'Starter import...';
+    autoImportBtn.disabled = true;
+    previewBtn.disabled = true;
+
+    const existing = await fetchExistingCVRs();
+    const results = [];
+    const maxAttempts = Math.max(50, count * 12);
+    let attempts = 0;
+
+    while(results.length < count && attempts < maxAttempts){
+      attempts++;
+      let queryTerm = '';
+      if(branch === 'Tilfældige'){
+        // pick a random branch keyword or single letter
+        const keys = Object.keys(branchKeywords);
+        const pick = Math.random() < 0.7 ? keys[Math.floor(Math.random()*keys.length)] : null;
+        queryTerm = pick ? (branchKeywords[pick] || pick) : String.fromCharCode(97 + Math.floor(Math.random()*26));
+      } else {
+        queryTerm = branchKeywords[branch] || branch;
+      }
+
+      progress.innerText = `Søger (${attempts}/${maxAttempts}) efter: ${queryTerm} — fundet ${results.length}/${count}`;
+
+      try {
+        const res = await fetch('https://cvrapi.dk/api?search='+encodeURIComponent(queryTerm)+'&country=dk');
+        if(!res.ok) continue;
+        const data = await res.json();
+        // normalize to array
+        const items = Array.isArray(data) ? data : (data.items || [data]);
+        for(const it of items){
+          const vat = it.vat || it.cvr || it.vat_no || it.vatNumber || null;
+          const cv = vat ? String(vat).replace(/\D/g,'') : null;
+          if(!cv) continue;
+          if(existing.has(cv)) continue;
+          if(results.find(r=>r.cvr===cv)) continue;
+          // check established year if available - import only this year if possible
+          const est = it.established || it.establishmentDate || it.startDate || null;
+          if(est){
+            const y = String(est).slice(0,4);
+            const thisYear = new Date().getFullYear();
+            if(parseInt(y,10) !== thisYear) continue;
+          }
+          const payload = {
+            name: it.name || it.trade_name || it.companyName || '',
+            address: (it.address||'') + ' ' + (it.zipcode||'') + ' ' + (it.city||''),
+            phone: it.phone || (it.telephone || ''),
+            cvr: cv,
+            branche: it.business_activity || (branch!=='Tilfældige'?branch:''),
+            startDate: est || null,
+            contact: '',
+            notes: 'Autoimport - '+(branch || 'Tilfældige'),
+            status: 'Intet svar',
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+            createdBy: auth.currentUser ? auth.currentUser.email : 'auto'
+          };
+          results.push(payload);
+          if(results.length >= count) break;
+        }
+      } catch(e){
+        // ignore and continue
+      }
+      // small delay to reduce rate issues
+      await new Promise(r=>setTimeout(r, 400));
+    }
+
+    progress.innerText = `Færdig søgning. Fundet ${results.length} poster. Gemmer i CRM...`;
+    // save results to firestore
+    let saved = 0;
+    for(const r of results){
+      try {
+        await db.collection('customers').add(r);
+        saved++;
+      } catch(e){ console.error('save error',e); }
+    }
+
+    progress.innerText = `Import færdig: ${saved} poster gemt.`;
+    autoImportBtn.disabled = false;
+    previewBtn.disabled = false;
+    loadCustomers();
+  };
+
+  // preview: same search but don't save
+  previewBtn.onclick = async ()=> {
+    if(!auth.currentUser){ alert('Log ind først'); return; }
+    const branch = branchSelect.value;
+    const count = parseInt(countSelect.value,10);
+    progress.innerText = 'Forhåndsviser...';
+    const results = [];
+    const maxAttempts = Math.max(40, count * 8);
+    let attempts = 0;
+    while(results.length < count && attempts < maxAttempts){
+      attempts++;
+      let queryTerm = branch === 'Tilfældige' ? String.fromCharCode(97 + Math.floor(Math.random()*26)) : (branchKeywords[branch] || branch);
+      progress.innerText = `Forhåndsviser (${attempts}/${maxAttempts})...`;
+      try {
+        const res = await fetch('https://cvrapi.dk/api?search='+encodeURIComponent(queryTerm)+'&country=dk');
+        if(!res.ok) continue;
+        const data = await res.json();
+        const items = Array.isArray(data) ? data : (data.items || [data]);
+        for(const it of items){
+          const vat = it.vat || it.cvr || it.vat_no || it.vatNumber || null;
+          const cv = vat ? String(vat).replace(/\D/g,'') : null;
+          if(!cv) continue;
+          if(results.find(r=>r.cvr===cv)) continue;
+          const est = it.established || it.establishmentDate || it.startDate || null;
+          if(est){
+            const y = String(est).slice(0,4);
+            const thisYear = new Date().getFullYear();
+            if(parseInt(y,10) !== thisYear) continue;
+          }
+          results.push({
+            name: it.name || it.trade_name || '',
+            cvr: cv,
+            address: (it.address||'') + ' ' + (it.zipcode||'') + ' ' + (it.city||''),
+            branche: it.business_activity || branch
+          });
+          if(results.length >= count) break;
+        }
+      } catch(e){}
+      await new Promise(r=>setTimeout(r, 300));
+    }
+    if(results.length===0) progress.innerText = 'Ingen resultater fundet — prøv en anden branche eller lav færre';
+    else {
+      progress.innerHTML = `Forhåndsvisning (${results.length}):\n` + results.map(r=>`${escapeHtml(r.name)} — ${escapeHtml(r.cvr)} — ${escapeHtml(r.branche)}`).join('\n');
+    }
+  };
+
   // List & realtime
   let unsub = null;
   function loadCustomers(){
@@ -233,12 +409,13 @@
   }
 
   function renderList(items){
-    const q = (el('q').value||'').toLowerCase();
-    const statusFilter = el('filterStatus').value;
+    const q = (el('q')?el('q').value:'') || '';
+    const statusFilter = el('filterStatus') ? el('filterStatus').value : '';
     const filtered = items.filter(it=>{
       if(statusFilter && it.status !== statusFilter) return false;
       if(q){
-        return (it.name||'').toLowerCase().includes(q) || (it.branche||'').toLowerCase().includes(q) || (it.cvr||'').toLowerCase().includes(q) || (it.contact||'').toLowerCase().includes(q);
+        const ql = q.toLowerCase();
+        return (it.name||'').toLowerCase().includes(ql) || (it.branche||'').toLowerCase().includes(ql) || (it.cvr||'').toLowerCase().includes(ql) || (it.contact||'').toLowerCase().includes(ql);
       }
       return true;
     });
@@ -312,9 +489,9 @@
 
   el('listViewBtn').onclick = ()=> loadCustomers();
 
-  // Filters live
-  el('q').addEventListener('input', ()=> loadCustomers());
-  el('filterStatus').addEventListener('change', ()=> loadCustomers());
+  // Filters live (if inputs exist)
+  if(el('q')) el('q').addEventListener('input', ()=> loadCustomers());
+  if(el('filterStatus')) el('filterStatus').addEventListener('change', ()=> loadCustomers());
 
   </script>
 </body>
