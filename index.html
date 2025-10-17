@@ -3,15 +3,16 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Trio Digital CRM — Autoimport</title>
+  <title>Trio Digital CRM — Autoimport + Ejerskab</title>
   <style>
     :root{--bg:#0f1724;--card:#0b1220;--accent:#06b6d4;--muted:#9aa4b2}
     body{margin:0;font-family:Arial,Helvetica,sans-serif;background:linear-gradient(180deg,#071022 0%, #0f1724 100%);color:#e6eef6}
-    .wrap{max-width:1100px;margin:18px auto;padding:18px}
+    .wrap{max-width:1200px;margin:18px auto;padding:18px}
     header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
     h1{margin:0;font-size:20px;color:var(--accent)}
     .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.03);padding:12px;border-radius:10px}
-    input,textarea,select,button{font-size:14px;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:transparent;color:inherit}
+    input,textarea,select,button{font-size:14px;padding:8px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);background:#0b1220;color:#e6eef6}
+    select, option { background:#0b1220; color:#e6eef6; }
     textarea{min-height:80px}
     .grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
     .list{max-height:56vh;overflow:auto}
@@ -24,7 +25,8 @@
     footer{margin-top:12px;color:var(--muted);font-size:13px}
     .hidden{display:none}
     .progress{margin-top:8px;font-size:13px;color:var(--muted);white-space:pre-wrap}
-    @media (max-width:900px){.grid{grid-template-columns:1fr;}.list{max-height:300px}}
+    .owner-tag{font-size:12px;color:var(--muted);margin-top:6px}
+    @media (max-width:1000px){.grid{grid-template-columns:1fr;}.list{max-height:300px}}
   </style>
 </head>
 <body>
@@ -32,9 +34,9 @@
     <header>
       <div>
         <h1>Trio Digital CRM</h1>
-        <div class="small">Callcenter - Autoimport modul</div>
+        <div class="small">Callcenter — Autoimport & ejerskab</div>
       </div>
-      <div class="card" id="authCard" style="min-width:260px;text-align:right">
+      <div class="card" id="authCard" style="min-width:280px;text-align:right">
         <div id="signedOut">
           <button id="googleSignIn" class="btn">Log ind med Google</button>
           <div class="small" style="margin-top:6px">Brug din Trio Digital Google-konto</div>
@@ -49,9 +51,11 @@
     </header>
 
     <main id="appArea" class="grid hidden">
+      <!-- Auto-import section -->
       <section class="card">
         <h3>Auto-import virksomheder</h3>
-        <div class="small">Vælg branche og antal — systemet forsøger at hente aktive virksomheder oprettet i år.</div>
+        <div class="small">Vælg branche, antal, opstartsdato-interval og postnummer-interval.</div>
+
         <div style="margin-top:8px" class="row">
           <select id="branchSelect" style="flex:1">
             <option value="Tilfældige">Tilfældige</option>
@@ -66,6 +70,7 @@
             <option value="Ejendom og bolig">Ejendom og bolig</option>
             <option value="Rådgivning og konsulent">Rådgivning og konsulent</option>
           </select>
+
           <select id="countSelect" style="width:120px;margin-left:8px">
             <option value="10">10</option>
             <option value="25">25</option>
@@ -73,18 +78,37 @@
             <option value="100">100</option>
           </select>
         </div>
+
+        <div style="margin-top:8px" class="row">
+          <label class="small">Opstart fra:</label>
+          <input id="dateFrom" type="date" />
+          <label class="small">til:</label>
+          <input id="dateTo" type="date" />
+        </div>
+
+        <div style="margin-top:8px" class="row">
+          <label class="small">Postnr fra:</label>
+          <input id="zipFrom" type="number" placeholder="2000" style="width:100px" />
+          <label class="small">til:</label>
+          <input id="zipTo" type="number" placeholder="3010" style="width:100px" />
+        </div>
+
         <div style="margin-top:8px" class="row">
           <button id="autoImportBtn" class="btn">Importer virksomheder automatisk</button>
           <button id="previewBtn" class="btn ghost">Forhåndsvis (ingen import)</button>
         </div>
+
         <div id="progress" class="progress"></div>
         <hr style="margin-top:12px;border-top:1px dashed rgba(255,255,255,0.03)">
 
+        <!-- Create single -->
         <h4 style="margin-top:8px">Opret / Importér enkelt</h4>
         <input id="c_name" placeholder="Firmanavn" />
         <input id="c_address" placeholder="Adresse" />
-        <input id="c_phone" placeholder="Telefon" />
-        <input id="c_cvr" placeholder="CVR" />
+        <div class="row" style="gap:8px">
+          <input id="c_phone" placeholder="Telefon" style="flex:1" />
+          <input id="c_cvr" placeholder="CVR" style="width:180px" />
+        </div>
         <input id="c_contact" placeholder="Kontaktperson" />
         <input id="c_branche" placeholder="Branche" />
         <div class="row" style="margin-top:6px">
@@ -93,12 +117,13 @@
         </div>
         <textarea id="c_notes" placeholder="Noter"></textarea>
         <div class="row" style="margin-top:6px">
-          <button id="createBtn" class="btn">Opret kunde</button>
+          <button id="createBtn" class="btn">Opret kunde (bliv ejer)</button>
           <button id="importBtn" class="btn ghost">Import fra CVR</button>
           <button id="clearBtn" class="btn ghost">Nulstil</button>
         </div>
       </section>
 
+      <!-- Customer list and details -->
       <section class="card">
         <h3>Kundeoversigt</h3>
         <div class="row small" style="margin-bottom:8px">
@@ -123,7 +148,7 @@
     </div>
 
     <footer class="small card">
-      Dette er Trio Digital CRM. Data gemmes i jeres Firebase-konto. Tilføj autoriserede domæner og Google sign-in i Firebase Auth settings.
+      Trio Digital CRM — data gemmes i jeres Firebase. Kontakt mig for server-side import hvis du vil have fuld Datafordeler-adgang.
     </footer>
   </div>
 
@@ -133,7 +158,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
 
   <script>
-  // ====== FIREBASE CONFIG - sørg for at dette matcher din Firebase Project settings ======
+  // ====== FIREBASE CONFIG - tjek at dette matcher dit Firebase projekt ======
   const firebaseConfig = {
     apiKey: "AIzaSyC2bDIXgf7IX1egmqhjp3DH2AGy0fwG8v8",
     authDomain: "trio-digital-crm-be5c8.firebaseapp.com",
@@ -144,7 +169,6 @@
     measurementId: "G-ZZG3TPH6B4"
   };
 
-  // initialize firebase
   firebase.initializeApp(firebaseConfig);
   const auth = firebase.auth();
   const db = firebase.firestore();
@@ -167,8 +191,19 @@
   const branchSelect = el('branchSelect');
   const countSelect = el('countSelect');
   const progress = el('progress');
+  const dateFrom = el('dateFrom');
+  const dateTo = el('dateTo');
+  const zipFrom = el('zipFrom');
+  const zipTo = el('zipTo');
 
-  // branch keywords mapping (used as search terms for cvrapi)
+  // statuses (use exact strings)
+  const STATUS_OPF_INGEN = 'Opfølgning - ingen kontakt';
+  const STATUS_OPF = 'Opfølgning';
+  const STATUS_MOEDE = 'Møde';
+  const STATUS_INTET = 'Intet svar';
+  const STATUS_AFS = 'Afslag';
+
+  // branch keywords mapping
   const branchKeywords = {
     "Bygge og anlæg": "byggeri",
     "Handel": "handel",
@@ -182,7 +217,7 @@
     "Rådgivning og konsulent": "konsulent"
   };
 
-  // auth flows
+  // auth
   googleSignIn.onclick = async ()=> {
     const provider = new firebase.auth.GoogleAuthProvider();
     try { await auth.signInWithPopup(provider); }
@@ -207,7 +242,7 @@
     }
   });
 
-  // create single customer
+  // --- Create manual: new items are owned by creator and status = Opfølgning - ingen kontakt
   el('createBtn').onclick = async () => {
     if(!auth.currentUser){ alert('Log ind først'); return; }
     const payload = {
@@ -220,19 +255,22 @@
       startDate: el('c_start').value || null,
       followUpDate: el('c_follow').value || null,
       notes: el('c_notes').value || '',
-      status: 'Intet svar',
+      status: STATUS_OPF_INGEN,
+      owner: auth.currentUser ? auth.currentUser.email : null,
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
       createdBy: auth.currentUser ? auth.currentUser.email : 'unknown'
     };
     try {
       await db.collection('customers').add(payload);
-      alert('Kunde oprettet');
+      alert('Kunde oprettet og ejet af dig');
       clearForm();
+      loadCustomers();
     } catch(e){ alert('Fejl ved oprettelse: '+e.message) }
   };
+
   el('clearBtn').onclick = ()=> ['c_name','c_address','c_phone','c_cvr','c_contact','c_branche','c_notes','c_start','c_follow'].forEach(id=>el(id).value='');
 
-  // import single from CVR
+  // --- Import single from CVR (manual) — improved parsing
   el('importBtn').onclick = async ()=> {
     const cvr = el('c_cvr').value.trim();
     if(!cvr){ alert('Skriv CVR i feltet først'); return; }
@@ -240,25 +278,35 @@
       const res = await fetch('https://cvrapi.dk/api?search='+encodeURIComponent(cvr)+'&country=dk');
       if(!res.ok) throw new Error('CVR API fejl');
       const data = await res.json();
+      // normalize common fields - cvrapi responses vary
+      const name = data.name || data.trade_name || data.companyName || '';
+      const addr = (data.address || data.street || '') + ' ' + (data.zipcode || data.postcode || '') + ' ' + (data.city || data.town || '');
+      const phone = data.phone || data.telephone || data.phonenumber || '';
+      const vat = data.vat || data.cvr || data.vat_no || null;
+      const branche = data.business_activity || (data.industry && data.industry[0] && data.industry[0].code) || '';
+      const est = data.established || data.establishmentDate || data.startDate || null;
+
       const payload = {
-        name: data.name || data.trade_name || '',
-        address: (data.address||'') + ' ' + (data.zipcode||'') + ' ' + (data.city||''),
-        phone: data.phone || '',
-        cvr: data.vat || cvr,
-        branche: data.business_activity || (data.industry && data.industry[0] && data.industry[0].code) || '',
-        startDate: data.established || null,
+        name: name,
+        address: addr.trim(),
+        phone: phone,
+        cvr: vat ? String(vat).replace(/\D/g,'') : cvr,
+        branche: branche,
+        startDate: est || null,
         contact: '',
-        notes: 'Importeret fra CVR',
-        status: 'Intet svar',
+        notes: 'Importeret fra CVR (manuel)',
+        status: STATUS_INTET,
+        owner: null,
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       };
       await db.collection('customers').add(payload);
       alert('Importeret: ' + (payload.name || payload.cvr));
       clearForm();
+      loadCustomers();
     } catch(err){ alert('Fejl ved CVR-import: '+err.message) }
   };
 
-  // helper: check existing CVRs in DB
+  // --- helper to get existing CVRs set
   async function fetchExistingCVRs(){
     const snap = await db.collection('customers').get();
     const set = new Set();
@@ -266,25 +314,28 @@
     return set;
   }
 
-  // auto-import function
+  // --- Auto-import implementation with date and zip filters
   autoImportBtn.onclick = async ()=> {
     if(!auth.currentUser){ alert('Log ind først'); return; }
     const branch = branchSelect.value;
     const count = parseInt(countSelect.value,10);
+    const fromDate = dateFrom.value ? new Date(dateFrom.value) : null;
+    const toDate = dateTo.value ? new Date(dateTo.value) : null;
+    const zipFromVal = zipFrom.value ? parseInt(zipFrom.value,10) : null;
+    const zipToVal = zipTo.value ? parseInt(zipTo.value,10) : null;
+
     progress.innerText = 'Starter import...';
-    autoImportBtn.disabled = true;
-    previewBtn.disabled = true;
+    autoImportBtn.disabled = true; previewBtn.disabled = true;
 
     const existing = await fetchExistingCVRs();
     const results = [];
-    const maxAttempts = Math.max(50, count * 12);
+    const maxAttempts = Math.max(200, count * 20);
     let attempts = 0;
 
     while(results.length < count && attempts < maxAttempts){
       attempts++;
       let queryTerm = '';
       if(branch === 'Tilfældige'){
-        // pick a random branch keyword or single letter
         const keys = Object.keys(branchKeywords);
         const pick = Math.random() < 0.7 ? keys[Math.floor(Math.random()*keys.length)] : null;
         queryTerm = pick ? (branchKeywords[pick] || pick) : String.fromCharCode(97 + Math.floor(Math.random()*26));
@@ -298,7 +349,6 @@
         const res = await fetch('https://cvrapi.dk/api?search='+encodeURIComponent(queryTerm)+'&country=dk');
         if(!res.ok) continue;
         const data = await res.json();
-        // normalize to array
         const items = Array.isArray(data) ? data : (data.items || [data]);
         for(const it of items){
           const vat = it.vat || it.cvr || it.vat_no || it.vatNumber || null;
@@ -306,23 +356,36 @@
           if(!cv) continue;
           if(existing.has(cv)) continue;
           if(results.find(r=>r.cvr===cv)) continue;
-          // check established year if available - import only this year if possible
+
           const est = it.established || it.establishmentDate || it.startDate || null;
-          if(est){
-            const y = String(est).slice(0,4);
-            const thisYear = new Date().getFullYear();
-            if(parseInt(y,10) !== thisYear) continue;
+          if(est && fromDate){
+            const estDate = new Date(est);
+            if(estDate < fromDate) continue;
           }
+          if(est && toDate){
+            const estDate2 = new Date(est);
+            if(estDate2 > toDate) continue;
+          }
+
+          // postcode handling: cvrapi sometimes returns zipcode/postcode
+          const zipcode = it.zipcode || it.postcode || it.zip || null;
+          if(zipcode && (zipFromVal || zipToVal)){
+            const znum = parseInt(String(zipcode).replace(/\D/g,''),10);
+            if(zipFromVal && znum < zipFromVal) continue;
+            if(zipToVal && znum > zipToVal) continue;
+          }
+
           const payload = {
             name: it.name || it.trade_name || it.companyName || '',
             address: (it.address||'') + ' ' + (it.zipcode||'') + ' ' + (it.city||''),
-            phone: it.phone || (it.telephone || ''),
+            phone: it.phone || (it.telephone || '') || '',
             cvr: cv,
             branche: it.business_activity || (branch!=='Tilfældige'?branch:''),
             startDate: est || null,
             contact: '',
             notes: 'Autoimport - '+(branch || 'Tilfældige'),
-            status: 'Intet svar',
+            status: STATUS_INTET, // auto imports are free and status = Intet svar initially
+            owner: null,
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
             createdBy: auth.currentUser ? auth.currentUser.email : 'auto'
           };
@@ -331,36 +394,39 @@
         }
       } catch(e){
         // ignore and continue
+        console.warn('cvrapi error', e);
       }
-      // small delay to reduce rate issues
       await new Promise(r=>setTimeout(r, 400));
     }
 
     progress.innerText = `Færdig søgning. Fundet ${results.length} poster. Gemmer i CRM...`;
-    // save results to firestore
     let saved = 0;
     for(const r of results){
       try {
         await db.collection('customers').add(r);
         saved++;
-      } catch(e){ console.error('save error',e); }
+      } catch(e){ console.error('save error', e); }
     }
-
     progress.innerText = `Import færdig: ${saved} poster gemt.`;
-    autoImportBtn.disabled = false;
-    previewBtn.disabled = false;
+    autoImportBtn.disabled = false; previewBtn.disabled = false;
     loadCustomers();
   };
 
-  // preview: same search but don't save
+  // preview (same but don't save) - respects date/zip filters
   previewBtn.onclick = async ()=> {
     if(!auth.currentUser){ alert('Log ind først'); return; }
     const branch = branchSelect.value;
     const count = parseInt(countSelect.value,10);
+    const fromDate = dateFrom.value ? new Date(dateFrom.value) : null;
+    const toDate = dateTo.value ? new Date(dateTo.value) : null;
+    const zipFromVal = zipFrom.value ? parseInt(zipFrom.value,10) : null;
+    const zipToVal = zipTo.value ? parseInt(zipTo.value,10) : null;
+
     progress.innerText = 'Forhåndsviser...';
     const results = [];
-    const maxAttempts = Math.max(40, count * 8);
+    const maxAttempts = Math.max(100, count * 12);
     let attempts = 0;
+
     while(results.length < count && attempts < maxAttempts){
       attempts++;
       let queryTerm = branch === 'Tilfældige' ? String.fromCharCode(97 + Math.floor(Math.random()*26)) : (branchKeywords[branch] || branch);
@@ -376,10 +442,19 @@
           if(!cv) continue;
           if(results.find(r=>r.cvr===cv)) continue;
           const est = it.established || it.establishmentDate || it.startDate || null;
-          if(est){
-            const y = String(est).slice(0,4);
-            const thisYear = new Date().getFullYear();
-            if(parseInt(y,10) !== thisYear) continue;
+          if(est && fromDate){
+            const estDate = new Date(est);
+            if(estDate < fromDate) continue;
+          }
+          if(est && toDate){
+            const estDate2 = new Date(est);
+            if(estDate2 > toDate) continue;
+          }
+          const zipcode = it.zipcode || it.postcode || it.zip || null;
+          if(zipcode && (zipFromVal || zipToVal)){
+            const znum = parseInt(String(zipcode).replace(/\D/g,''),10);
+            if(zipFromVal && znum < zipFromVal) continue;
+            if(zipToVal && znum > zipToVal) continue;
           }
           results.push({
             name: it.name || it.trade_name || '',
@@ -392,13 +467,14 @@
       } catch(e){}
       await new Promise(r=>setTimeout(r, 300));
     }
+
     if(results.length===0) progress.innerText = 'Ingen resultater fundet — prøv en anden branche eller lav færre';
     else {
-      progress.innerHTML = `Forhåndsvisning (${results.length}):\n` + results.map(r=>`${escapeHtml(r.name)} — ${escapeHtml(r.cvr)} — ${escapeHtml(r.branche)}`).join('\n');
+      progress.innerText = `Forhåndsvisning (${results.length}):\n` + results.map(r=>`${r.name} — ${r.cvr} — ${r.branche}`).join('\n');
     }
   };
 
-  // List & realtime
+  // --- Listing and details ---
   let unsub = null;
   function loadCustomers(){
     if(unsub) unsub();
@@ -409,67 +485,104 @@
   }
 
   function renderList(items){
-    const q = (el('q')?el('q').value:'') || '';
-    const statusFilter = el('filterStatus') ? el('filterStatus').value : '';
-    const filtered = items.filter(it=>{
-      if(statusFilter && it.status !== statusFilter) return false;
-      if(q){
-        const ql = q.toLowerCase();
-        return (it.name||'').toLowerCase().includes(ql) || (it.branche||'').toLowerCase().includes(ql) || (it.cvr||'').toLowerCase().includes(ql) || (it.contact||'').toLowerCase().includes(ql);
-      }
-      return true;
-    });
     const list = el('list'); list.innerHTML='';
-    if(filtered.length===0){ list.innerHTML='<div class="small">Ingen kunder</div>'; return; }
-    for(const it of filtered){
+    if(items.length===0){ list.innerHTML='<div class="small">Ingen kunder</div>'; return; }
+    for(const it of items){
       const d = document.createElement('div'); d.className='item';
-      d.innerHTML = '<strong>'+escapeHtml(it.name||'(uden navn)')+'</strong><div class="small">'+escapeHtml(it.contact||'')+' • '+escapeHtml(it.phone||'')+'</div><div class="small">Status: '+escapeHtml(it.status||'')+' • Opstart: '+escapeHtml(it.startDate||'')+'</div>';
+      const ownerText = it.owner ? `Ejer: ${escapeHtml(it.owner)}` : 'Fri';
+      d.innerHTML = `<strong>${escapeHtml(it.name||'(uden navn)')}</strong>
+        <div class="small">${escapeHtml(it.contact||'')} • ${escapeHtml(it.phone||'')}</div>
+        <div class="small">Status: ${escapeHtml(it.status||'')} • Opstart: ${escapeHtml(it.startDate||'')} • ${ownerText}</div>`;
       d.onclick = ()=> showDetail(it);
       list.appendChild(d);
     }
   }
 
   function showDetail(it){
+    const ownerText = it.owner ? escapeHtml(it.owner) : 'Fri (ingen ejer)';
+    const canClaim = (!it.owner) || (it.owner === (auth.currentUser?auth.currentUser.email:null));
+    // can't claim if owned by someone else
+    const claimButtonHtml = (!it.owner) ? `<button class="btn" id="claimBtn">Tag emne</button>` : (it.owner === (auth.currentUser?auth.currentUser.email:null) ? `<span class="owner-tag">Du ejer dette emne</span>` : `<span class="owner-tag">Ejes af ${escapeHtml(it.owner)}</span>`);
+
     const html = `
       <div><strong>${escapeHtml(it.name||'')}</strong></div>
       <div class="small">Kontakt: ${escapeHtml(it.contact||'')} • ${escapeHtml(it.phone||'')}</div>
       <div class="small">CVR: ${escapeHtml(it.cvr||'')} • Branche: ${escapeHtml(it.branche||'')}</div>
       <div class="small">Adresse: ${escapeHtml(it.address||'')}</div>
       <div class="small">Opstart: ${escapeHtml(it.startDate||'')} • Opfølgningsdato: ${escapeHtml(it.followUpDate||'')}</div>
+      <div class="small">Ejer: ${ownerText}</div>
       <div style="margin-top:8px"><textarea id="edit_notes">${escapeHtml(it.notes||'')}</textarea></div>
       <div class="row" style="margin-top:8px">
         <select id="edit_status">
-          <option ${it.status==='Opfølgning'?'selected':''}>Opfølgning</option>
-          <option ${it.status==='Intet svar'?'selected':''}>Intet svar</option>
-          <option ${it.status==='Afslag'?'selected':''}>Afslag</option>
+          <option ${it.status===STATUS_OPF_INGEN?'selected':''}>${STATUS_OPF_INGEN}</option>
+          <option ${it.status===STATUS_OPF?'selected':''}>${STATUS_OPF}</option>
+          <option ${it.status===STATUS_MOEDE?'selected':''}>${STATUS_MOEDE}</option>
+          <option ${it.status===STATUS_INTET?'selected':''}>${STATUS_INTET}</option>
+          <option ${it.status===STATUS_AFS?'selected':''}>${STATUS_AFS}</option>
         </select>
         <input id="edit_follow" type="date" value="${it.followUpDate?it.followUpDate:''}" />
         <button class="btn" id="saveBtn">Gem</button>
         <button class="btn ghost" id="exportBtn">Kopier</button>
         <button class="btn red" id="deleteBtn">Slet</button>
+        ${claimButtonHtml}
       </div>
     `;
     el('detail').innerHTML = html;
     window._currentItem = it;
+
+    // save
     el('saveBtn').onclick = async ()=>{
       const notes = el('edit_notes').value;
       const status = el('edit_status').value;
       const follow = el('edit_follow').value || null;
-      await db.collection('customers').doc(it.id).update({ notes, status, followUpDate: follow });
-      alert('Opdateret');
+      const updates = { notes, status, followUpDate: follow };
+
+      // if status set to Intet svar -> free the owner
+      if(status === STATUS_INTET){
+        updates.owner = null;
+      }
+      // only owner or anyone can update notes/status (we allow editing), but ownership rule applied above
+      try {
+        await db.collection('customers').doc(it.id).update(updates);
+        alert('Opdateret');
+      } catch(e){ alert('Fejl ved opdatering: '+e.message); }
     };
+
+    // delete
     el('deleteBtn').onclick = async ()=>{
       if(!confirm('Slet kunde?')) return;
       await db.collection('customers').doc(it.id).delete();
       el('detail').innerHTML = 'Vælg en kunde fra listen';
     };
+
+    // export
     el('exportBtn').onclick = ()=>{
       const obj = JSON.stringify(it, null, 2);
       navigator.clipboard.writeText(obj).then(()=> alert('Kunde kopieret til udklipsholder'));
     };
+
+    // claim button (if present)
+    const claimBtn = el('claimBtn');
+    if(claimBtn){
+      claimBtn.onclick = async () => {
+        if(!auth.currentUser){ alert('Log ind først'); return; }
+        // double-check owner hasn't changed
+        const doc = await db.collection('customers').doc(it.id).get();
+        const current = doc.data();
+        if(current.owner && current.owner !== auth.currentUser.email){
+          alert('Dette emne er allerede taget af ' + current.owner);
+          return;
+        }
+        // set owner and mark status to Opfølgning - ingen kontakt
+        await db.collection('customers').doc(it.id).update({ owner: auth.currentUser.email, status: STATUS_OPF_INGEN });
+        alert('Du har nu taget emnet');
+        loadCustomers();
+        showDetail(Object.assign({}, it, { owner: auth.currentUser.email, status: STATUS_OPF_INGEN }));
+      };
+    }
   }
 
-  // Calendar view
+  // calendar view
   el('calViewBtn').onclick = async ()=>{
     const snap = await db.collection('customers').orderBy('followUpDate').get();
     const items = snap.docs.map(d=>({id:d.id,...d.data()}));
@@ -489,10 +602,7 @@
 
   el('listViewBtn').onclick = ()=> loadCustomers();
 
-  // Filters live (if inputs exist)
-  if(el('q')) el('q').addEventListener('input', ()=> loadCustomers());
-  if(el('filterStatus')) el('filterStatus').addEventListener('change', ()=> loadCustomers());
-
+  // initial safe binds (no search inputs in this layout)
   </script>
 </body>
 </html>
