@@ -111,26 +111,28 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
 
+  <!-- Én samlet script-blok (rette og samlede funktioner) -->
   <script>
- // ====== FIREBASE CONFIG - sørg for at dette matcher din Firebase Project settings ======
-    const firebaseConfig = {
-      apiKey: "AIzaSyC2bDIXgf7IX1egmqhjp3DH2AGy0fwG8v8",
-      authDomain: "trio-digital-crm-be5c8.firebaseapp.com",
-      projectId: "trio-digital-crm-be5c8",
-      storageBucket: "trio-digital-crm-be5c8.appspot.com",
-      messagingSenderId: "278730282591",
-      appId: "1:278730282591:web:9013ea07a288c563192dea",
-      measurementId: "G-ZZG3TPH6B4"
-    };
- // ====== INITIALISER FIREBASE ======
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-  </script>
-  <script>
+  // ====== FIREBASE CONFIG - sørg for at dette matcher din Firebase Project settings ======
+  const firebaseConfig = {
+    apiKey: "AIzaSyC2bDIXgf7IX1egmqhjp3DH2AGy0fwG8v8",
+    authDomain: "trio-digital-crm-be5c8.firebaseapp.com",
+    projectId: "trio-digital-crm-be5c8",
+    storageBucket: "trio-digital-crm-be5c8.appspot.com",
+    messagingSenderId: "278730282591",
+    appId: "1:278730282591:web:9013ea07a288c563192dea",
+    measurementId: "G-ZZG3TPH6B4"
+  };
+
+  // ====== INITIALISER FIREBASE ======
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+
+  // Hjælpefunktioner
   const el = id => document.getElementById(id);
   const escapeHtml = s => String(s||'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[m]));
-</script>
+
   // Elements
   const googleSignIn = el('googleSignIn');
   const logoutBtn = el('logoutBtn');
@@ -196,7 +198,7 @@
 
   // Import from CVR
   el('importBtn').onclick = async () => {
-    const cvr = el('c_cvr').value.trim();
+    const cvr = el('cvr') || el('c_cvr').value.trim();
     if(!cvr){ alert('Skriv CVR i feltet først'); return; }
     try {
       const res = await fetch('https://cvrapi.dk/api?search='+encodeURIComponent(cvr)+'&country=dk');
@@ -290,7 +292,7 @@
     };
   }
 
-  # Calendar view
+  // Calendar view
   el('calViewBtn').onclick = async ()=>{
     const snap = await db.collection('customers').orderBy('followUpDate').get();
     const items = snap.docs.map(d=>({id:d.id,...d.data()}));
@@ -310,7 +312,7 @@
 
   el('listViewBtn').onclick = ()=> loadCustomers();
 
-  # Filters live
+  // Filters live
   el('q').addEventListener('input', ()=> loadCustomers());
   el('filterStatus').addEventListener('change', ()=> loadCustomers());
 
